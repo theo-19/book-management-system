@@ -1,0 +1,14 @@
+{
+  "name": "book-management-system",
+  "private": true,
+  "workspaces": [
+    "shared",
+    "frontend",
+    "backend"
+  ],
+  "dependencies": {},
+  "devDependencies": {},
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT"
+}
