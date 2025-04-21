@@ -5,10 +5,9 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: 'http://localhost:3000', // or `*` for wide open
+    origin: 'http://localhost:3000',
     credentials: true,
   });
-  // strip unknown props & validate
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   await app.listen(3001);
 }

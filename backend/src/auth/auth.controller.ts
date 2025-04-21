@@ -1,4 +1,3 @@
-// backend/src/auth/auth.controller.ts
 import { Body, Controller, Post, UsePipes } from '@nestjs/common';
 import { LoginInput, loginSchema } from '../../../shared/schemas';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';

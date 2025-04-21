@@ -1,4 +1,3 @@
-// frontend/src/app/admin/layout.tsx
 "use client";
 export const dynamic = "force-dynamic";
 
@@ -20,20 +19,17 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const { token, logout, initialized } = useAuth();
   const router = useRouter();
 
-  // only render once hydrated on the client to avoid hydration mismatch
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
     setHydrated(true);
   }, []);
 
-  // redirect to login once we know init state
   useEffect(() => {
     if (initialized && !token) {
       router.push("/login");
     }
   }, [initialized, token, router]);
 
-  // fetch profile
   const { data: user } = useQuery({
     queryKey: ["profile"],
     queryFn: () => api.get("/users/profile").then((r) => r.data),

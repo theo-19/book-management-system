@@ -7,7 +7,6 @@ interface AuthContextType {
   token: string | null;
   login: (data: LoginInput) => Promise<void>;
   logout: () => void;
-  // ← add:
   initialized: boolean;
 }
 
@@ -15,7 +14,6 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => {
-    // this initializer only runs on the client, no need for useEffect
     if (typeof window !== "undefined") {
       return localStorage.getItem("token");
     }

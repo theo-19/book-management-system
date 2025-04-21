@@ -16,7 +16,6 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginInput) => {
     try {
       await login(data);
-      // redirect to /admin
       window.location.href = "/admin";
     } catch (err) {
       alert(`${err}:Invalid credentials`);

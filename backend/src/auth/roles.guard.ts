@@ -17,7 +17,6 @@ export class RolesGuard implements CanActivate {
       ctx.getClass(),
     ]);
     if (!required || required.length === 0) {
-      // no @Roles() means public or just JWT-protected
       return true;
     }
 

@@ -1,4 +1,3 @@
-// backend/src/common/pipes/zod-validation.pipe.ts
 import { BadRequestException, PipeTransform } from '@nestjs/common';
 import { ZodSchema } from 'zod';
 

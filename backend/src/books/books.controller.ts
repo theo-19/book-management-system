@@ -24,7 +24,6 @@ import { UpdateBookDto } from './dto/update-book.dto';
 export class BooksController {
   constructor(private readonly booksService: BooksService) {}
 
-  // Public: anyone can list & view
   @Get()
   getAll(
     @Query('page') page = '1',
@@ -39,7 +38,6 @@ export class BooksController {
     return this.booksService.findOne(id);
   }
 
-  // Protected: only authenticated users with role=admin
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')
   @Post()
@@ -55,9 +53,9 @@ export class BooksController {
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body(
       new ValidationPipe({
-        whitelist: true, // strip any unexpected props
-        skipMissingProperties: true, // allow partial updates
-        forbidNonWhitelisted: true, // throw on any extra props
+        whitelist: true,
+        skipMissingProperties: true,
+        forbidNonWhitelisted: true,
       }),
     )
     dto: UpdateBookDto,
