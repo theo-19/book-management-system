@@ -25,39 +25,71 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import api from "../utils/api";
 import EditBookDialog from "./EditBookDialog";
 import NewBookDialog from "./NewBookDialog";
 
-export default function BooksTable() {
+type Book = {
+  id: string;
+  title: string;
+  author: string;
+  description: string;
+};
+
+interface BooksTableProps {
+  initialBooks: Book[];
+  initialTotal: number;
+}
+
+export default function BooksTable({ initialBooks }: BooksTableProps) {
   const theme = useTheme();
+  const queryClient = useQueryClient();
+
   const [q, setQ] = useState("");
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // fetch books
-  const { data, isLoading, refetch } = useQuery(
+  // 1) Query: seed with initialBooks, infinite stale, no auto refetch
+  const { data: books = initialBooks, isLoading } = useQuery(
     ["books", q],
     () =>
-      api.get(`/books?limit=10&q=${encodeURIComponent(q)}`).then((r) => r.data),
-    { keepPreviousData: true }
+      api
+        .get<{
+          data: Book[];
+          total: number;
+        }>(`/books?limit=10&q=${encodeURIComponent(q)}`)
+        .then((r) => r.data.data),
+    {
+      initialData: initialBooks,
+      staleTime: Infinity,
+      cacheTime: Infinity,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
+    }
   );
 
-  // fetch profile to get email
-  const { data: userProfile } = useQuery(
-    ["profile"],
-    () => api.get("/users/profile").then((r) => r.data),
-    { staleTime: Infinity }
+  // 2) Mutations: invalidate ['books', q] so it refetches once
+  const addBook = useMutation(
+    (newBook: Omit<Book, "id">) => api.post("/books", newBook),
+    { onSuccess: () => queryClient.invalidateQueries(["books", q]) }
   );
+  const updateBook = useMutation(
+    ({ id, data }: { id: string; data: Partial<Book> }) =>
+      api.patch(`/books/${id}`, data),
+    { onSuccess: () => queryClient.invalidateQueries(["books", q]) }
+  );
+  const deleteBook = useMutation((id: string) => api.delete(`/books/${id}`), {
+    onSuccess: () => queryClient.invalidateQueries(["books", q]),
+  });
 
   const handleDelete = async () => {
     if (!deletingId) return;
-    await api.delete(`/books/${deletingId}`);
+    await deleteBook.mutateAsync(deletingId);
     setDeletingId(null);
-    refetch();
   };
 
   return (
@@ -81,7 +113,9 @@ export default function BooksTable() {
           size="small"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && refetch()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") queryClient.invalidateQueries(["books", q]);
+          }}
           sx={{
             width: 300,
             backgroundColor: "#f3f4f6",
@@ -104,6 +138,7 @@ export default function BooksTable() {
             },
           }}
         />
+
         <Button
           variant="contained"
           startIcon={<AddIcon />}
@@ -146,8 +181,9 @@ export default function BooksTable() {
                   )}
                 </TableRow>
               </TableHead>
+
               <TableBody>
-                {data!.data.map((book) => (
+                {books.map((book) => (
                   <TableRow key={book.id} hover>
                     <TableCell sx={{ py: 2 }}>{book.title}</TableCell>
                     <TableCell sx={{ py: 2 }}>{book.author}</TableCell>
@@ -195,19 +231,23 @@ export default function BooksTable() {
         open={adding}
         onClose={() => {
           setAdding(false);
-          refetch();
         }}
+        // @ts-expect-error: Type inference issue with api.post return type
+        onSave={(data) => addBook.mutate(data)}
       />
+
       {editingId && (
         <EditBookDialog
           open
           bookId={editingId}
           onClose={() => {
             setEditingId(null);
-            refetch();
           }}
+          // @ts-expect-error: Type inference issue with api.post return type
+          onSave={(data) => updateBook.mutate({ id: editingId, data })}
         />
       )}
+
       <Dialog open={Boolean(deletingId)} onClose={() => setDeletingId(null)}>
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>

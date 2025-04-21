@@ -5,7 +5,6 @@ import api from "../utils/api";
 export function useCreateBook() {
   const qc = useQueryClient();
   return useMutation<Book, Error, CreateBookInput>(
-    // @ts-expect-error: Type inference issue with api.post return type
     (data: CreateBookInput) =>
       api.post<Book>("/books", data).then((r) => r.data),
     { onSuccess: () => qc.invalidateQueries({ queryKey: ["books"] }) }
@@ -15,7 +14,6 @@ export function useCreateBook() {
 export function useUpdateBook(id: string) {
   const qc = useQueryClient();
   return useMutation<Book, Error, Partial<CreateBookInput>>(
-    // @ts-expect-error: Type inference issue with api.post return type
     (data: Partial<CreateBookInput>) =>
       api.patch<Book>(`/books/${id}`, data).then((r) => r.data),
     { onSuccess: () => qc.invalidateQueries({ queryKey: ["books"] }) }
