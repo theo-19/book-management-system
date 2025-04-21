@@ -1,14 +1,8 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import {
-  AppBar,
-  Box,
-  Button,
-  Container,
-  Toolbar,
-  Typography,
-} from "@mui/material";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { Box, Button, Container, Typography } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
@@ -23,7 +17,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     setHydrated(true);
   }, []);
-
   useEffect(() => {
     if (initialized && !token) router.push("/login");
   }, [initialized, token, router]);
@@ -31,11 +24,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const { data: user } = useQuery(
     ["profile"],
     () => api.get("/users/profile").then((r) => r.data),
-    { enabled: true }
+    { enabled: initialized && !!token, staleTime: Infinity }
   );
-  if (!hydrated) return null;
 
-  if (!initialized || !token) {
+  if (!hydrated || !initialized || !token) {
     return (
       <Typography align="center" sx={{ mt: 4 }}>
         Loading…
@@ -45,26 +37,52 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <Box>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Admin Dashboard
-          </Typography>
-          <Typography variant="body1" sx={{ mr: 2 }}>
-            {user?.email} ({user?.role})
-          </Typography>
-          <Button
-            color="inherit"
-            onClick={() => {
-              logout();
-              router.push("/login");
-            }}
+      {/* Header */}
+      <Box
+        component="header"
+        sx={{
+          bgcolor: "white",
+          borderBottom: "1px solid #EAECF0",
+          py: 2,
+        }}
+      >
+        <Container
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 600, fontSize: "1.125rem" }}
           >
-            Logout
-          </Button>
-        </Toolbar>
-      </AppBar>
-      <Container sx={{ mt: 4 }}>{children}</Container>
+            BookStore Admin
+          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              {user?.email}
+            </Typography>
+            <Button
+              startIcon={<LogoutIcon />}
+              onClick={() => {
+                logout();
+                router.push("/login");
+              }}
+              sx={{
+                textTransform: "none",
+                bgcolor: "#F2F4F7",
+                color: "#101828",
+                "&:hover": { bgcolor: "#E4E7EC" },
+              }}
+            >
+              Logout
+            </Button>
+          </Box>
+        </Container>
+      </Box>
+
+      <Container sx={{ py: 3 }}>{children}</Container>
     </Box>
   );
 }
