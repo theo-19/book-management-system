@@ -1,4 +1,3 @@
-// frontend/src/app/layout.tsx
 import { ReactNode } from "react";
 import ClientProviders from "./ClientProviders";
 
@@ -12,7 +11,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <head />
       <body>
-        {/* This is a client boundary */}
         <ClientProviders>{children}</ClientProviders>
       </body>
     </html>

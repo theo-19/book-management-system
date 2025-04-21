@@ -18,32 +18,27 @@ import api from "../utils/api";
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { token, logout, initialized } = useAuth();
   const router = useRouter();
-
   const [hydrated, setHydrated] = useState(false);
+
   useEffect(() => {
     setHydrated(true);
   }, []);
 
   useEffect(() => {
-    if (initialized && !token) {
-      router.push("/login");
-    }
+    if (initialized && !token) router.push("/login");
   }, [initialized, token, router]);
 
-  const { data: user } = useQuery({
-    queryKey: ["profile"],
-    queryFn: () => api.get("/users/profile").then((r) => r.data),
-    enabled: true,
-  });
+  const { data: user } = useQuery(
+    ["profile"],
+    () => api.get("/users/profile").then((r) => r.data),
+    { enabled: true }
+  );
+  if (!hydrated) return null;
 
-  if (!hydrated) {
-    return null;
-  }
-  console.log({ initialized }, { token });
   if (!initialized || !token) {
     return (
       <Typography align="center" sx={{ mt: 4 }}>
-        Loading...
+        Loading…
       </Typography>
     );
   }

@@ -31,6 +31,8 @@ import book2 from "../public/images/book2.jpg";
 import book3 from "../public/images/book3.jpg";
 import book4 from "../public/images/book4.jpg";
 
+export const revalidate = 300;
+
 const categories = [
   { label: "Fiction", icon: <BookIcon /> },
   { label: "Science", icon: <ScienceIcon /> },
@@ -40,9 +42,13 @@ const categories = [
   { label: "Kids", icon: <ChildCareIcon /> },
 ];
 
+type Book = { id: string; title: string; author: string };
+
 export default async function HomePage() {
-  const res = await fetch("http://localhost:3001/books", { cache: "no-store" });
-  const { data: books } = await res.json();
+  const res = await fetch("http://localhost:3001/books", {
+    next: { revalidate },
+  });
+  const { data: books } = (await res.json()) as { data: Book[] };
 
   const covers = [book1, book2, book3, book4];
 
@@ -123,36 +129,31 @@ export default async function HomePage() {
           New Releases
         </Typography>
         <Grid container spacing={2}>
-          {books.map(
-            (
-              book: { id: string; title: string; author: string },
-              idx: number
-            ) => (
-              <Grid xs={12} sm={6} md={3} key={book.id}>
-                <Card>
-                  <CardMedia
-                    component="img"
-                    height="240"
-                    src={covers[idx % covers.length].src}
-                    alt={book.title}
-                  />
-                  <CardContent>
-                    <Typography variant="subtitle1" fontWeight="bold">
-                      {book.title}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {book.author}
-                    </Typography>
-                  </CardContent>
-                  <CardActions>
-                    <Button fullWidth variant="contained" size="small">
-                      View Details
-                    </Button>
-                  </CardActions>
-                </Card>
-              </Grid>
-            )
-          )}
+          {books.map((book, idx) => (
+            <Grid xs={12} sm={6} md={3} key={book.id}>
+              <Card>
+                <CardMedia
+                  component="img"
+                  height="240"
+                  src={covers[idx % covers.length].src}
+                  alt={book.title}
+                />
+                <CardContent>
+                  <Typography variant="subtitle1" fontWeight="bold">
+                    {book.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {book.author}
+                  </Typography>
+                </CardContent>
+                <CardActions>
+                  <Button fullWidth variant="contained" size="small">
+                    View Details
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
         </Grid>
       </Container>
 

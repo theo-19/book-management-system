@@ -1,14 +1,9 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import {
   Box,
   Button,
   CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Pagination,
   Table,
   TableBody,
@@ -17,28 +12,57 @@ import {
   TableRow,
   TextField,
 } from "@mui/material";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { useBooks } from "../hooks/useBooks";
 import api from "../utils/api";
 import EditBookDialog from "./EditBookDialog";
 import NewBookDialog from "./NewBookDialog";
 
-export default function BooksTable() {
+type Book = { id: string; title: string; author: string; description: string };
+
+export default function BooksClient({
+  initialBooks,
+  initialTotal,
+}: {
+  initialBooks: Book[];
+  initialTotal: number;
+}) {
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [q, setQ] = useState("");
-  const { data, isLoading, refetch } = useBooks({ page, limit: 10, q });
-
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const confirmDelete = async () => {
-    if (deletingId) {
-      await api.delete(`/books/${deletingId}`);
-      setDeletingId(null);
-      refetch();
+  const { data: books = initialBooks, isLoading } = useQuery(
+    ["books", page, q],
+    () =>
+      api
+        .get(`/books?page=${page}&limit=10&q=${encodeURIComponent(q)}`)
+        .then((r) => r.data.data),
+    {
+      initialData: initialBooks,
+      staleTime: Infinity,
+      cacheTime: Infinity,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      refetchOnReconnect: false,
     }
-  };
+  );
+
+  const addBook = useMutation(
+    (newBook: Omit<Book, "id">) => api.post("/books", newBook),
+    {
+      onSuccess: () => queryClient.invalidateQueries(["books"]),
+    }
+  );
+  const updateBook = useMutation(
+    ({ id, data }: { id: string; data: Partial<Book> }) =>
+      api.patch(`/books/${id}`, data),
+    { onSuccess: () => queryClient.invalidateQueries(["books"]) }
+  );
+  const deleteBook = useMutation((id: string) => api.delete(`/books/${id}`), {
+    onSuccess: () => queryClient.invalidateQueries(["books"]),
+  });
 
   if (isLoading) {
     return (
@@ -56,13 +80,7 @@ export default function BooksTable() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
-        <Button
-          variant="contained"
-          onClick={() => {
-            setPage(1);
-            refetch();
-          }}
-        >
+        <Button variant="contained" onClick={() => setPage(1)}>
           Search
         </Button>
         <Button variant="outlined" onClick={() => setAdding(true)}>
@@ -80,23 +98,23 @@ export default function BooksTable() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {data?.data.map((book) => (
-            <TableRow key={book.id}>
-              <TableCell>{book.title}</TableCell>
-              <TableCell>{book.author}</TableCell>
+          {books.map((b) => (
+            <TableRow key={b.id}>
+              <TableCell>{b.title}</TableCell>
+              <TableCell>{b.author}</TableCell>
               <TableCell>
-                {book.description.length > 50
-                  ? `${book.description.slice(0, 50)}…`
-                  : book.description}
+                {b.description.length > 50
+                  ? `${b.description.slice(0, 50)}…`
+                  : b.description}
               </TableCell>
               <TableCell align="right">
-                <Button size="small" onClick={() => setEditingId(book.id)}>
+                <Button size="small" onClick={() => setEditingId(b.id)}>
                   Edit
                 </Button>
                 <Button
                   size="small"
                   color="error"
-                  onClick={() => setDeletingId(book.id)}
+                  onClick={() => deleteBook.mutate(b.id)}
                 >
                   Delete
                 </Button>
@@ -108,7 +126,7 @@ export default function BooksTable() {
 
       <Box display="flex" justifyContent="center" mt={2}>
         <Pagination
-          count={Math.ceil((data?.total || 0) / 10)}
+          count={Math.ceil(initialTotal / 10)}
           page={page}
           onChange={(_, p) => setPage(p)}
         />
@@ -116,32 +134,17 @@ export default function BooksTable() {
 
       <NewBookDialog
         open={adding}
-        onClose={() => {
-          setAdding(false);
-          refetch();
-        }}
+        onClose={() => setAdding(false)}
+        onSave={(data) => addBook.mutate(data)}
       />
       {editingId && (
         <EditBookDialog
-          open={Boolean(editingId)}
-          bookId={editingId!}
-          onClose={() => {
-            setEditingId(null);
-            refetch();
-          }}
+          open
+          bookId={editingId}
+          onClose={() => setEditingId(null)}
+          onSave={(data) => updateBook.mutate({ id: editingId, data })}
         />
       )}
-
-      <Dialog open={Boolean(deletingId)} onClose={() => setDeletingId(null)}>
-        <DialogTitle>Confirm Delete</DialogTitle>
-        <DialogContent>Are you sure?</DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeletingId(null)}>Cancel</Button>
-          <Button color="error" onClick={confirmDelete}>
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 }
