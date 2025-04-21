@@ -1,25 +1,19 @@
-// frontend/src/app/layout.tsx  (Server Component)
+// frontend/src/app/layout.tsx
+import { ReactNode } from "react";
 import ClientProviders from "./ClientProviders";
-import "./globals.css";
-import ThemeRegistry from "./lib/ThemeRegistry";
 
 export const metadata = {
-  title: "Book Management System",
-  description: "…",
+  title: "Book Catalog",
+  description: "Public catalog and admin dashboard",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head />
-      <body suppressHydrationWarning>
-        <ThemeRegistry>
-          <ClientProviders>{children}</ClientProviders>
-        </ThemeRegistry>
+      <body>
+        {/* This is a client boundary */}
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );
