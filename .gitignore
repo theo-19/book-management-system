@@ -1,0 +1,8 @@
+/node_modules
+/tsconfig.json
+/yarn.lock
+/backend/node_modules
+/frontend/node_modules
+/shared/node_modules
+/backend/dist
+/frontend/.next
