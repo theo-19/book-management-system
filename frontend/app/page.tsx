@@ -45,9 +45,7 @@ const categories = [
 type Book = { id: string; title: string; author: string };
 
 export default async function HomePage() {
-  const res = await fetch("http://localhost:3001/books", {
-    next: { revalidate },
-  });
+  const res = await fetch("http://localhost:3001/books");
   const { data: books } = (await res.json()) as { data: Book[] };
 
   const covers = [book1, book2, book3, book4];
