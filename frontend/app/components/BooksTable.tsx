@@ -226,7 +226,6 @@ export default function BooksTable({ initialBooks }: BooksTableProps) {
         )}
       </Box>
 
-      {/* DIALOGS */}
       <NewBookDialog
         open={adding}
         onClose={() => {

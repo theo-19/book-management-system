@@ -59,7 +59,6 @@ export default function EditBookDialog({
     router.refresh();
   };
 
-  // Loading state
   if (loadingBook) {
     return (
       <Dialog
@@ -87,7 +86,6 @@ export default function EditBookDialog({
         },
       }}
     >
-      {/* Title + Close */}
       <DialogTitle sx={{ p: "16px 24px", bgcolor: "#FFFFFF" }}>
         <Typography
           variant="subtitle1"
@@ -113,7 +111,6 @@ export default function EditBookDialog({
         </IconButton>
       </DialogTitle>
 
-      {/* Form */}
       <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
         <DialogContent sx={{ p: "16px 24px", bgcolor: "#FFFFFF" }}>
           <TextField
@@ -169,7 +166,6 @@ export default function EditBookDialog({
           />
         </DialogContent>
 
-        {/* Actions */}
         <DialogActions sx={{ p: "16px 24px", bgcolor: "#FFFFFF" }}>
           <Button
             onClick={onClose}

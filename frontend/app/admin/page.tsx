@@ -1,4 +1,3 @@
-// frontend/src/app/admin/page.tsx
 import { Metadata } from "next";
 import BooksClient from "../components/BooksTable";
 

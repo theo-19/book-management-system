@@ -60,7 +60,6 @@ export default function NewBookDialog({
         },
       }}
     >
-      {/* Title + Close */}
       <DialogTitle sx={{ p: "16px 24px", bgcolor: "#FFFFFF" }}>
         <Typography
           variant="subtitle1"
